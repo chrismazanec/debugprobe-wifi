@@ -1,3 +1,6 @@
+/* SPDX-License-Identifier: MIT
+ * Copyright (c) 2026 The debugprobe-wifi authors
+ */
 /* lwIP options for debugprobe-wifi (Pico 2 W, FreeRTOS SMP, NO_SYS=0). */
 #ifndef _LWIPOPTS_H
 #define _LWIPOPTS_H

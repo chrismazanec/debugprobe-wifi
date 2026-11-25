@@ -1,3 +1,6 @@
+/* SPDX-License-Identifier: MIT
+ * Copyright (c) 2026 The debugprobe-wifi authors
+ */
 /* Small RAM event log (boot stages, WiFi, clients). Printed on the CDC port
  * when it is opened and the target UART has never sent a byte, and by the
  * config console command "log". Never contains the WiFi password. */

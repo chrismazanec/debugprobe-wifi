@@ -1,3 +1,6 @@
+/* SPDX-License-Identifier: MIT
+ * Copyright (c) 2026 The debugprobe-wifi authors
+ */
 /*
  * Single-client CMSIS-DAP TCP server. Written against the BSD socket API so
  * the same file runs on lwIP (firmware) and on POSIX (host tests, -DDAP_TCP_HOST).

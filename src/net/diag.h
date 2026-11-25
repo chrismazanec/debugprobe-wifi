@@ -1,3 +1,6 @@
+/* SPDX-License-Identifier: MIT
+ * Copyright (c) 2026 The debugprobe-wifi authors
+ */
 /* Crash / hang diagnostics that survive a watchdog reboot (watchdog scratch
  * registers 0..3; the SDK and bootrom use 4..7). */
 #ifndef DIAG_H_

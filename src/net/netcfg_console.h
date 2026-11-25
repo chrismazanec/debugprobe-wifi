@@ -1,3 +1,6 @@
+/* SPDX-License-Identifier: MIT
+ * Copyright (c) 2026 The debugprobe-wifi authors
+ */
 /*
  * Line-oriented configuration console. Reached by opening the probe's
  * existing USB CDC serial port at the magic baud rate NETCFG_CONSOLE_BAUD;

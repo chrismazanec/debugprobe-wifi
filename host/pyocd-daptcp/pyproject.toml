@@ -7,6 +7,7 @@ name = "pyocd-daptcp"
 version = "0.1.0"
 description = "pyOCD probe plugin: CMSIS-DAP over TCP (OpenOCD cmsis-dap tcp protocol), e.g. debugprobe-wifi on a Pico 2 W"
 requires-python = ">=3.8"
+license = { text = "MIT" }
 dependencies = ["pyocd>=0.36"]
 
 [project.entry-points."pyocd.probe"]

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 The debugprobe-wifi authors
 """Provision / inspect a Pico 2 W running debugprobe-wifi over its USB serial port.
 
   wifiprobe-provision.py --ssid "MyNet" --country SK --allow 192.168.1.23/32

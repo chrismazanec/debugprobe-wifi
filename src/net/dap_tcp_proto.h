@@ -1,3 +1,6 @@
+/* SPDX-License-Identifier: MIT
+ * Copyright (c) 2026 The debugprobe-wifi authors
+ */
 /*
  * CMSIS-DAP over TCP framing, compatible with OpenOCD's "cmsis-dap tcp"
  * backend (src/jtag/drivers/cmsis_dap_tcp.c, OpenOCD master since 2025-09):

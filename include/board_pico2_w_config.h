@@ -1,3 +1,6 @@
+/* SPDX-License-Identifier: MIT
+ * Copyright (c) 2026 The debugprobe-wifi authors
+ */
 /*
  * Pico 2 W (RP2350 + CYW43439) as a debug probe with a WiFi CMSIS-DAP
  * transport (OpenOCD "cmsis-dap tcp" protocol, default port 4441).

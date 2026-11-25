@@ -1,3 +1,6 @@
+/* SPDX-License-Identifier: MIT
+ * Copyright (c) 2026 The debugprobe-wifi authors
+ */
 /* RP2350 side of diag.h: scratch registers, fault handlers, watchdog task. */
 #include <string.h>
 #include "FreeRTOS.h"

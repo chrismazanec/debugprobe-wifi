@@ -1,3 +1,6 @@
+/* SPDX-License-Identifier: MIT
+ * Copyright (c) 2026 The debugprobe-wifi authors
+ */
 #include <string.h>
 #include "dap_tcp_proto.h"
 #include "dap_tcp_server.h"

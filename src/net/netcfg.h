@@ -1,3 +1,6 @@
+/* SPDX-License-Identifier: MIT
+ * Copyright (c) 2026 The debugprobe-wifi authors
+ */
 /*
  * Network configuration of the WiFi probe. Lives only in the last 4 KiB
  * sector of the Pico's own flash; it is written over USB (config console,

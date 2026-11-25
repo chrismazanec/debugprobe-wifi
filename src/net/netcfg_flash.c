@@ -1,3 +1,6 @@
+/* SPDX-License-Identifier: MIT
+ * Copyright (c) 2026 The debugprobe-wifi authors
+ */
 /* Flash persistence for netcfg_t: last 4 KiB sector of the Pico's flash. */
 #include <string.h>
 #include "pico/flash.h"
