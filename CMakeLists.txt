@@ -53,8 +53,11 @@ pico_generate_pio_header(debugprobe ${CMAKE_CURRENT_LIST_DIR}/src/autobaud.pio)
 target_include_directories(debugprobe PRIVATE src)
 
 # add version
+if (PICO_BOARD STREQUAL "pico2_w")
+    set(PROBE_VERSION_ARGS --describe)   # e.g. v0.2.0-3-gabc1234-dirty
+endif()
 add_custom_target(version
-        ${CMAKE_SOURCE_DIR}/get-version.sh
+        ${CMAKE_SOURCE_DIR}/get-version.sh ${PROBE_VERSION_ARGS}
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 
