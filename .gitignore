@@ -1,0 +1,3 @@
+build-*/
+host/pyocd-daptcp/*.egg-info/
+host/pyocd-daptcp/build/

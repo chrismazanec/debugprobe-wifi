@@ -71,7 +71,12 @@
 /* Memory allocation related definitions. */
 #define configSUPPORT_STATIC_ALLOCATION         0
 #define configSUPPORT_DYNAMIC_ALLOCATION        1
+#ifdef PROBE_NET_WIFI
+/* lwIP sockets + CYW43 + heap_4 (frees). */
+#define configTOTAL_HEAP_SIZE                   (160*1024)
+#else
 #define configTOTAL_HEAP_SIZE                   (64*1024)
+#endif
 #define configAPPLICATION_ALLOCATED_HEAP        0
 
 /* Hook function related definitions. */

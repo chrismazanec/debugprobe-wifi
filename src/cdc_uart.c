@@ -30,6 +30,10 @@
 #include "autobaud.h"
 
 #include "probe_config.h"
+#ifdef PROBE_NET_WIFI
+#include "net/net_task.h"
+#include "net/netcfg_console.h"
+#endif
 
 TaskHandle_t uart_taskhandle;
 TickType_t last_wake, interval = 100;
@@ -106,6 +110,15 @@ bool cdc_task(void)
     while(uart_is_readable(PROBE_UART_INTERFACE) && (rx_len < sizeof(rx_buf))) {
         rx_buf[rx_len++] = uart_getc(PROBE_UART_INTERFACE);
     }
+
+#ifdef PROBE_NET_WIFI
+    /* Config console replaces the UART bridge while the host has the CDC
+     * port open at NETCFG_CONSOLE_BAUD; target UART RX is discarded. */
+    if (netcon_active()) {
+        netcon_poll();
+        return false;
+    }
+#endif
 
     if (tud_cdc_connected()) {
         was_connected = 1;
@@ -221,6 +234,16 @@ void cdc_thread(void *ptr)
 
 void tud_cdc_line_coding_cb(uint8_t itf, cdc_line_coding_t const* line_coding)
 {
+#ifdef PROBE_NET_WIFI
+  if (line_coding->bit_rate == NETCFG_CONSOLE_BAUD) {
+    if (autobaud_running)
+      autobaud_wait_stop();
+    netcon_enter();
+    return;
+  } else if (netcon_active()) {
+    netcon_exit();
+  }
+#endif
   if (line_coding->bit_rate == MAGIC_BAUD) {
     if (!autobaud_running)
       autobaud_start();

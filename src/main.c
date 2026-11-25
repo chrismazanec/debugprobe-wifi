@@ -46,6 +46,9 @@
 #include "tusb_edpt_handler.h"
 #include "DAP.h"
 #include "hardware/structs/usb.h"
+#ifdef PROBE_NET_WIFI
+#include "net/net_task.h"
+#endif
 
 // UART0 for debugprobe debug
 // UART1 for debugprobe to target device
@@ -155,6 +158,10 @@ int main(void) {
     stdio_uart_init();
 
     DAP_Setup();
+#ifdef PROBE_NET_WIFI
+    dap_lock_init();
+    net_init();
+#endif
 
     probe_info("Welcome to debugprobe!\n");
 

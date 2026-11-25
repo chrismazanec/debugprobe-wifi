@@ -7,6 +7,9 @@
 #include "tusb_edpt_handler.h"
 #include "DAP.h"
 #include "semphr.h"
+#ifdef PROBE_NET_WIFI
+#include "net/net_task.h"
+#endif
 
 
 static uint8_t itf_num;
@@ -246,7 +249,13 @@ void dap_thread(void *ptr)
 			}
 			xSemaphoreGive(edpt_spoon);
 
+#ifdef PROBE_NET_WIFI
+			dap_lock();
+#endif
 			resp_len = DAP_ExecuteCommand(RD_SLOT_PTR(USBRequestBuffer), WR_SLOT_PTR(USBResponseBuffer)) & 0xffff;
+#ifdef PROBE_NET_WIFI
+			dap_unlock();
+#endif
 			USBRequestBuffer.rptr++;
 			probe_info("%lu %lu DAP resp %s len %u\n",
 					   USBResponseBuffer.wptr, USBResponseBuffer.rptr,
