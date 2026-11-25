@@ -14,9 +14,10 @@ void dap_unlock(void);
 void net_init(void);
 
 /* Config console glue for cdc_uart.c (USB CDC at NETCFG_CONSOLE_BAUD). */
-void netcon_enter(void);
+void netcon_enter(const char *how);   /* flags only: safe from TinyUSB callbacks */
 void netcon_exit(void);
 bool netcon_active(void);
-void netcon_poll(void);   /* called from the CDC thread instead of the UART bridge */
+/* UART task: host opened the CDC port in bridge mode. */
+void netcon_bridge_opened(uint32_t uart_rx_total);
 
 #endif

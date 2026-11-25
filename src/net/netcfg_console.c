@@ -8,10 +8,14 @@ static void out(netcfg_console_t *con, const char *s)
     con->io.write(s, strlen(s), con->io.ctx);
 }
 
+/* Static buffers: the console must also be safe on a small task stack. */
+static char outf_buf[200];
+static char status_buf[1024];
+
 static void outf(netcfg_console_t *con, const char *fmt, const char *a)
 {
-    char buf[200];
-    snprintf(buf, sizeof buf, fmt, a);
+    char *buf = outf_buf;
+    snprintf(buf, sizeof outf_buf, fmt, a);
     out(con, buf);
 }
 
@@ -70,7 +74,9 @@ static void help(netcfg_console_t *con)
 {
     out(con,
         "show                 settings being edited\r\n"
-        "status               WiFi link, IP address, DAP client\r\n"
+        "status               WiFi link, IP address, DAP client, diagnostics\r\n"
+        "log                  boot / event log\r\n"
+        "exit                 leave the console (back to the UART bridge)\r\n"
         "ssid <name>          network name (rest of line, spaces allowed)\r\n"
         "psk                  prompt for the password (not echoed)\r\n"
         "auth wpa2|wpa3|open  security (default wpa2; open clears psk)\r\n"
@@ -131,12 +137,19 @@ static void command(netcfg_console_t *con, char *line)
         show(con);
         ok(con);
     } else if (!strcmp(cmd, "status")) {
-        char buf[400];
-        buf[0] = 0;
+        status_buf[0] = 0;
         if (con->io.status)
-            con->io.status(buf, sizeof buf, con->io.ctx);
-        out(con, buf);
+            con->io.status(status_buf, sizeof status_buf, con->io.ctx);
+        out(con, status_buf);
         ok(con);
+    } else if (!strcmp(cmd, "log")) {
+        if (con->io.log)
+            con->io.log(con->io.ctx);
+        ok(con);
+    } else if (!strcmp(cmd, "exit") || !strcmp(cmd, "quit")) {
+        ok(con);
+        if (con->io.quit)
+            con->io.quit(con->io.ctx);
     } else if (!strcmp(cmd, "ssid")) {
         if (strlen(arg) == 0 || strlen(arg) > 32) {
             err(con, "ssid must be 1..32 characters");
@@ -304,4 +317,29 @@ void netcfg_console_input(netcfg_console_t *con, const uint8_t *data, size_t n)
             }
         }
     }
+}
+
+bool netcfg_magic_feed(netcfg_magic_t *m, const uint8_t *data, size_t n)
+{
+    static const char magic[] = NETCFG_CONSOLE_MAGIC;
+    const size_t len = sizeof(magic) - 1;
+    bool hit = false;
+    for (size_t i = 0; i < n; i++) {
+        uint8_t b = data[i];
+        if (m->idx == len) {
+            if (b == '\r' || b == '\n') {
+                hit = true;
+                m->idx = 0;
+                continue;
+            }
+            m->idx = 0;
+        }
+        if (b == (uint8_t)magic[m->idx])
+            m->idx++;
+        else if (b == '+')                 /* prefix is "+++": a longer run of '+' stays matched */
+            m->idx = (m->idx == 3) ? 3 : 1;
+        else
+            m->idx = 0;
+    }
+    return hit;
 }

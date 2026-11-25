@@ -57,6 +57,11 @@ static uint rx_led_debounce;
 
 static BaudInfo_t baud_info;
 
+#ifdef PROBE_NET_WIFI
+static uint32_t uart_rx_total;
+static netcfg_magic_t magic;
+#endif
+
 void cdc_uart_init(void) {
     gpio_set_function(PROBE_UART_TX, GPIO_FUNC_UART);
     gpio_set_function(PROBE_UART_RX, GPIO_FUNC_UART);
@@ -114,13 +119,16 @@ bool cdc_task(void)
 #ifdef PROBE_NET_WIFI
     /* Config console replaces the UART bridge while the host has the CDC
      * port open at NETCFG_CONSOLE_BAUD; target UART RX is discarded. */
-    if (netcon_active()) {
-        netcon_poll();
-        return false;
-    }
+    uart_rx_total += rx_len;
+    if (netcon_active())
+        return false;            /* the CFG task owns the CDC port */
 #endif
 
     if (tud_cdc_connected()) {
+#ifdef PROBE_NET_WIFI
+        if (!was_connected)
+            netcon_bridge_opened(uart_rx_total);
+#endif
         was_connected = 1;
         int written = 0;
         /* Implicit overflow if we don't write all the bytes to the host.
@@ -159,6 +167,12 @@ bool cdc_task(void)
         watermark = MIN(watermark, 16);
         tx_len = tud_cdc_read(tx_buf, watermark);
         uart_write_blocking(PROBE_UART_INTERFACE, tx_buf, tx_len);
+#ifdef PROBE_NET_WIFI
+        if (netcfg_magic_feed(&magic, tx_buf, tx_len)) {
+            netcon_enter("magic string");
+            return false;
+        }
+#endif
       } else {
 #ifdef PROBE_UART_TX_LED
           if (tx_led_debounce)
@@ -238,7 +252,7 @@ void tud_cdc_line_coding_cb(uint8_t itf, cdc_line_coding_t const* line_coding)
   if (line_coding->bit_rate == NETCFG_CONSOLE_BAUD) {
     if (autobaud_running)
       autobaud_wait_stop();
-    netcon_enter();
+    netcon_enter("baud 9727");
     return;
   } else if (netcon_active()) {
     netcon_exit();
@@ -322,6 +336,16 @@ void tud_cdc_line_state_cb(uint8_t itf, bool dtr, bool rts)
 
   /* CDC drivers use linestate as a bodge to activate/deactivate the interface.
    * Resume our UART polling on activate, stop on deactivate */
+#ifdef PROBE_NET_WIFI
+  if (!dtr) {
+    netcon_exit();
+  } else if (!netcon_active()) {
+    cdc_line_coding_t lc;
+    tud_cdc_get_line_coding(&lc);
+    if (lc.bit_rate == NETCFG_CONSOLE_BAUD)
+      netcon_enter("baud 9727, port reopened");
+  }
+#endif
   if (!dtr) {
     vTaskSuspend(uart_taskhandle);
 #ifdef PROBE_UART_RX_LED

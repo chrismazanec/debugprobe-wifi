@@ -48,6 +48,8 @@
 #include "hardware/structs/usb.h"
 #ifdef PROBE_NET_WIFI
 #include "net/net_task.h"
+#include "net/diag.h"
+#include "net/plog.h"
 #endif
 
 // UART0 for debugprobe debug
@@ -148,6 +150,10 @@ void usb_thread(void *ptr)
 #endif
 
 int main(void) {
+#ifdef PROBE_NET_WIFI
+    diag_boot();          /* read the previous boot's crash record first */
+    plog_init();
+#endif
     // Declare pins in binary information
     bi_decl_config();
 
@@ -175,6 +181,9 @@ int main(void) {
 #if (configNUMBER_OF_CORES > 1)
         vTaskCoreAffinitySet(mon_taskhandle, (1 << 0));
 #endif
+#endif
+#ifdef PROBE_NET_WIFI
+        diag_stage(STAGE_SCHED);
 #endif
         vTaskStartScheduler();
     }
@@ -302,7 +311,12 @@ void tud_mount_cb(void)
   probe_info("Connected, Configured: %d\n", !!was_configured);
   if (!was_configured) {
     /* UART needs to preempt USB as if we don't, characters get lost */
+#ifdef PROBE_NET_WIFI
+    /* the bridge also writes the boot log: give it headroom over stock */
+    xTaskCreate(cdc_thread, "UART", 1024, NULL, UART_TASK_PRIO, &uart_taskhandle);
+#else
     xTaskCreate(cdc_thread, "UART", configMINIMAL_STACK_SIZE, NULL, UART_TASK_PRIO, &uart_taskhandle);
+#endif
     /* Lowest priority thread is debug - need to shuffle buffers before we can toggle swd... */
     xTaskCreate(dap_thread, "DAP", configMINIMAL_STACK_SIZE, NULL, DAP_TASK_PRIO, &dap_taskhandle);
     /* Autobaud detection using PIO as a frequency counter */
@@ -322,10 +336,21 @@ void vApplicationTickHook (void)
 
 void vApplicationStackOverflowHook(TaskHandle_t Task, char *pcTaskName)
 {
+#ifdef PROBE_NET_WIFI
+  uint32_t nm = 0;
+  for (int i = 0; i < 4 && pcTaskName[i]; i++)
+    nm |= (uint32_t)(uint8_t)pcTaskName[i] << (8 * i);
+  diag_fault(DIAG_STACK, nm, 0);
+#else
   panic("stack overflow (not the helpful kind) for %s\n", *pcTaskName);
+#endif
 }
 
 void vApplicationMallocFailedHook(void)
 {
+#ifdef PROBE_NET_WIFI
+  diag_fault(DIAG_PANIC, 0x4D414C4Cu /* "MALL" */, 0);
+#else
   panic("Malloc Failed\n");
+#endif
 };

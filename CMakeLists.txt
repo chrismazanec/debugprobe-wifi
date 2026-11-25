@@ -41,6 +41,10 @@ target_include_directories(debugprobe PRIVATE
         )
 
 target_compile_options(debugprobe PRIVATE -Wall)
+option(PROBE_STACK_USAGE "emit .su stack usage files" OFF)
+if (PROBE_STACK_USAGE)
+    target_compile_options(debugprobe PRIVATE -fstack-usage)
+endif()
 
 pico_generate_pio_header(debugprobe ${CMAKE_CURRENT_LIST_DIR}/src/probe.pio)
 pico_generate_pio_header(debugprobe ${CMAKE_CURRENT_LIST_DIR}/src/probe_oen.pio)
@@ -94,11 +98,12 @@ if (PICO_BOARD STREQUAL "pico2_w")
             src/net/netcfg_console.c
             src/net/dap_tcp_proto.c
             src/net/dap_tcp_server.c
+            src/net/plog.c
+            src/net/diag.c
+            src/net/diag_rp.c
     )
     target_compile_definitions(debugprobe PRIVATE
             PROBE_NET_WIFI=1
-            CYW43_TASK_STACK_SIZE=2048
-            ASYNC_CONTEXT_DEFAULT_FREERTOS_TASK_STACK_SIZE=2048
             PICO_FLASH_ASSERT_ON_UNSAFE=0
     )
     target_link_libraries(debugprobe PRIVATE

@@ -135,6 +135,9 @@ uint8_t const * tud_descriptor_configuration_cb(uint8_t index)
 //--------------------------------------------------------------------+
 
 // array of pointer to string descriptors
+#ifdef PROBE_NET_WIFI
+_Static_assert(sizeof(PROBE_PRODUCT_STRING) - 1 <= 31, "USB product string is cut at 31 characters");
+#endif
 char const* string_desc_arr [] =
 {
   (const char[]) { 0x09, 0x04 }, // 0: is supported language is English (0x0409)

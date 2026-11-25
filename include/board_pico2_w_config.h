@@ -32,6 +32,8 @@
 // Network transport
 #define PROBE_NET_WIFI 1
 
-#define PROBE_PRODUCT_STRING "Debugprobe WiFi on Pico 2 W (CMSIS-DAP)"
+/* USB string descriptors are capped at 31 characters (usb_descriptors.c);
+ * hosts look for "CMSIS-DAP" in the product string. 27 characters: */
+#define PROBE_PRODUCT_STRING "Debugprobe WiFi (CMSIS-DAP)"
 
 #endif

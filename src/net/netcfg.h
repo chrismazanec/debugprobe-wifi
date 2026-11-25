@@ -51,7 +51,7 @@ void netcfg_format_ipv4(uint32_t ip, char *out /* >= 16 */);
 int  netcfg_mask_bits(uint32_t mask);
 
 /* Target only (netcfg_flash.c) */
-void netcfg_load(netcfg_t *c);              /* defaults if flash empty / invalid */
+bool netcfg_load(netcfg_t *c);              /* false (and defaults) if flash empty / invalid */
 int  netcfg_store(const netcfg_t *c);       /* 0 = ok */
 int  netcfg_erase(void);
 

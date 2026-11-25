@@ -27,12 +27,14 @@ static void do_store(void *unused)
     flash_range_program(NETCFG_FLASH_OFFSET, page, FLASH_PAGE_SIZE);
 }
 
-void netcfg_load(netcfg_t *c)
+bool netcfg_load(netcfg_t *c)
 {
     const netcfg_t *f = (const netcfg_t *)(XIP_BASE + NETCFG_FLASH_OFFSET);
     memcpy(c, f, sizeof(*c));
-    if (!netcfg_valid(c))
-        netcfg_defaults(c);
+    if (netcfg_valid(c))
+        return true;
+    netcfg_defaults(c);
+    return false;
 }
 
 int netcfg_store(const netcfg_t *c)
