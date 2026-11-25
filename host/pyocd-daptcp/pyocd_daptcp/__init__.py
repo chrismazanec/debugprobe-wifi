@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 The debugprobe-wifi authors
 """pyOCD debug probe plugin for CMSIS-DAP over TCP.
 
 Speaks the framing of OpenOCD's ``cmsis-dap tcp`` backend (8-byte header:
@@ -33,6 +35,32 @@ DEFAULT_PORT = 4441
 MAX_PAYLOAD = 1024
 
 
+_resolved = {}
+
+
+def _resolve(host, port):
+    """Resolve once per process, IPv4 first.
+
+    The firmware is IPv4 only. With AF_UNSPEC, resolvers that also ask for an
+    AAAA record of a ``.local`` name (macOS) wait several seconds for an
+    answer that never comes, and pyOCD opens the probe more than once. So: ask
+    for IPv4 alone, fall back to any family, and cache the answer."""
+    key = (host, port)
+    if key in _resolved:
+        return _resolved[key]
+    last = None
+    for family in (socket.AF_INET, socket.AF_UNSPEC):
+        try:
+            infos = socket.getaddrinfo(host, port, family, socket.SOCK_STREAM)
+        except socket.gaierror as e:
+            last = e
+            continue
+        if infos:
+            _resolved[key] = (infos[0][0], infos[0][4])
+            return _resolved[key]
+    raise DAPAccessIntf.DeviceError(f"daptcp: cannot resolve {host!r}: {last}")
+
+
 def _parse(uid):
     host, sep, port = uid.rpartition(":")
     if not sep:
@@ -63,10 +91,14 @@ class DapTcpInterface(Interface):
     def open(self):
         if self._sock is not None:
             return
+        family, addr = _resolve(self.host, self.port)
+        s = socket.socket(family, socket.SOCK_STREAM)
+        s.settimeout(5.0)
         try:
-            s = socket.create_connection((self.host, self.port), timeout=5.0)
+            s.connect(addr)
         except OSError as e:
-            raise DAPAccessIntf.DeviceError(f"cannot connect to {self.host}:{self.port}: {e}") from e
+            s.close()
+            raise DAPAccessIntf.DeviceError(f"cannot connect to {self.host}:{self.port} ({addr[0]}): {e}") from e
         s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         s.settimeout(self.DEFAULT_USB_TIMEOUT_S)
         self._sock = s
