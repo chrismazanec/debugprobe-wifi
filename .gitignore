@@ -1,3 +1,17 @@
+# build trees
+build/
 build-*/
-host/pyocd-daptcp/*.egg-info/
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
 host/pyocd-daptcp/build/
+# firmware images belong in dist/ only
+*.uf2
+!dist/*.uf2
+*.elf
+# host test outputs
+test/host/daptcp-sim
+test/host/unit
+test/host/console_pty
+test/host/out/
